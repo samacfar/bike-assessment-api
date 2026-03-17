@@ -1,0 +1,611 @@
+[
+  {
+    "brand": "Specialized",
+    "logo_shapes": [
+      "Stylized italic 'S' icon — used alone on head tube badge and as standalone brand mark",
+      "SPECIALIZED full wordmark in bold condensed sans-serif capitals — primary frame decal",
+      "S-WORKS sub-brand wordmark in smaller caps — appears on premium builds alongside main wordmark"
+    ],
+    "frame_signatures": [
+      "FSR (Future Shock Rear) four-bar Horst-link suspension on Stumpjumper EVO and Enduro — pivot located just above BB on chainstay forward of rear axle, rocker link midway up seat tube",
+      "Single-pivot with carbon flex-stay on 2021+ carbon Stumpjumper (non-EVO) — no chainstay pivot, carbon seatstays flex instead",
+      "Asymmetric sidearm strut between top tube and seat tube on Stumpjumper EVO — visible structural brace on non-drive side",
+      "SWAT downtube storage door — rectangular port on underside of downtube, present on Stumpjumper and Enduro from 2016+",
+      "FACT carbon markings on premium carbon frames — small 'FACT' lettering near BB or on downtube",
+      "Trunnion mount shock on current Stumpjumper and Enduro — shock mounted at both ends via bearings with no eye mount visible",
+      "Geometry flip-chip at chainstay pivot on Stumpjumper EVO — small machined alloy chip visible at rear dropout area"
+    ],
+    "distinctive_colours": [
+      "Gloss Rocket Red — bright signal red, signature Specialized colour used across road and MTB",
+      "Satin Black — near-universal base colour across the range",
+      "Gloss White — used on S-Works Tarmac and premium road models",
+      "Gloss Birch/Taupe — warm neutral introduced on 2023 Stumpjumper EVO Expert"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "Stumpjumper EVO",
+        "identifiers": [
+          "FSR four-bar linkage visible — pivot above BB on chainstay, rocker link on seat tube",
+          "Asymmetric sidearm strut between top and seat tube on non-drive side",
+          "SWAT door on underside of downtube",
+          "Geometry adjustment chips at chainstay pivot",
+          "STUMPJUMPER EVO decal on downtube, EVO in contrasting colour or weight",
+          "150mm rear travel, 160mm fork standard"
+        ]
+      },
+      {
+        "family": "Stumpjumper (carbon, non-EVO, 2021+)",
+        "identifiers": [
+          "Single-pivot with carbon flex-stays — no lower chainstay pivot, seatstays visually continuous to dropout",
+          "SWAT door on underside of downtube",
+          "STUMPJUMPER decal on downtube without EVO suffix",
+          "130mm rear travel standard"
+        ]
+      },
+      {
+        "family": "Tarmac SL",
+        "identifiers": [
+          "Aero road frame — pronounced teardrop tube profiles throughout",
+          "Integrated seatpost and seat clamp area — seatpost flows directly into seat tube",
+          "TARMAC decal on downtube, SL series number on top tube or seat tube",
+          "S-WORKS badge on premium builds at head tube"
+        ]
+      },
+      {
+        "family": "Enduro",
+        "identifiers": [
+          "FSR suspension with longer travel than Stumpjumper — 160mm rear typical",
+          "ENDURO wordmark on downtube",
+          "More aggressive frame silhouette — shorter top tube, longer rear triangle than Stumpjumper"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "SPECIALIZED wordmark — full length of downtube, drive side, horizontal orientation",
+      "Model name (e.g. STUMPJUMPER, TARMAC) — top tube or seat tube, smaller than brand wordmark",
+      "S icon or S-WORKS — head tube area or top tube",
+      "FACT carbon designation — near BB shell or lower downtube on carbon frames",
+      "Size indicator — seat tube, near seat clamp"
+    ],
+    "logo_contrast": [
+      "White wordmark on dark or coloured frames",
+      "Black wordmark on white or light frames",
+      "Red S-WORKS lettering on some builds for sub-brand differentiation"
+    ]
+  },
+  {
+    "brand": "Trek",
+    "logo_shapes": [
+      "TREK wordmark in bold condensed italic capitals — primary frame decal, distinctive rightward lean",
+      "No standalone icon — wordmark only used across all models"
+    ],
+    "frame_signatures": [
+      "ABP (Active Braking Pivot) — rear wheel axle is also the rear suspension pivot; visible as oversized axle carrier at dropout integrated into swingarm, all Trek full-suspension bikes",
+      "OCLV carbon marking — 'OCLV Mountain Carbon' or 'OCLV Carbon' text on frame near BB or head tube on carbon models",
+      "Mino Link flip chip — small machined alloy chip at rocker link or lower shock mount, present on Remedy, Fuel EX, Slash",
+      "Knock Block headset — internal steering limiter visible as small tab at head tube preventing fork from contacting frame",
+      "High pivot suspension on Slash (2022+) — main pivot visibly higher than BB, large idler pulley on rear triangle to manage chain",
+      "Internal frame storage compartment on Slash, Top Fuel, Fuel EX — rectangular hatch on downtube"
+    ],
+    "distinctive_colours": [
+      "Trek Red — deep gloss red used on flagship models and race team livery",
+      "Matte Black — standard across the range",
+      "Radioactive Yellow/Green — high-visibility colourway used on MTB models",
+      "Dnister Black (matte near-black) — flagship dark colourway"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "Remedy",
+        "identifiers": [
+          "ABP pivot at rear axle — oversized dropout carrier",
+          "Mino Link chip at rocker arm visible on frame",
+          "REMEDY wordmark on downtube",
+          "140-150mm rear travel, 150-160mm fork",
+          "Trail/all-mountain geometry — medium stack, moderate reach"
+        ]
+      },
+      {
+        "family": "Slash",
+        "identifiers": [
+          "High pivot design on 2022+ — pivot sits well above BB, large chain guide/idler pulley visible at rear triangle",
+          "SLASH wordmark on downtube",
+          "170mm travel front and rear",
+          "Downtube storage hatch on current generation"
+        ]
+      },
+      {
+        "family": "Fuel EX",
+        "identifiers": [
+          "ABP pivot at axle",
+          "Mino Link chip",
+          "FUEL EX wordmark on downtube",
+          "130-140mm rear travel — shorter travel trail geometry"
+        ]
+      },
+      {
+        "family": "Domane",
+        "identifiers": [
+          "Road endurance frame with IsoSpeed decoupler — seat tube visually separated from top tube junction",
+          "DOMANE wordmark on downtube",
+          "Endurance road geometry — taller stack than race bikes"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "TREK wordmark — full length of downtube, drive side, large format italic bold",
+      "Model name (REMEDY, SLASH etc) — top tube or seat tube in smaller weight",
+      "OCLV Carbon designation — lower downtube or near BB on carbon frames",
+      "Size marking — seat tube near clamp"
+    ],
+    "logo_contrast": [
+      "White TREK wordmark on dark frames",
+      "Black TREK wordmark on white or light frames",
+      "Occasionally metallic silver on premium builds"
+    ]
+  },
+  {
+    "brand": "Giant",
+    "logo_shapes": [
+      "Giant 'G' icon — stylised uppercase G, used on head tube and as standalone brand mark",
+      "GIANT full wordmark in clean sans-serif capitals — primary downtube decal",
+      "Both G icon and GIANT wordmark used together on most models"
+    ],
+    "frame_signatures": [
+      "Maestro suspension — four-pivot dual-linkage system; distinctive 'shock basket' at BB area",
+      "Trunnion mount shock integrated into Maestro linkage on current models",
+      "Advanced Forged Composite (AFC) rocker arm — carbon composite upper rocker link visible above the shock",
+      "Asymmetric chainstays — drive side chainstay visibly larger/stiffer than non-drive side on ALUXX models",
+      "Downtube storage hatch on 2023+ Trance and Reign"
+    ],
+    "distinctive_colours": [
+      "Metallic Blue — deep metallic blue used across Trance and TCR ranges",
+      "Black/Red — race-oriented colourway on Anthem and TCR",
+      "Team colour — black with red and white"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "Trance",
+        "identifiers": [
+          "Maestro suspension — shock basket at BB visible",
+          "TRANCE wordmark on downtube",
+          "130-140mm rear travel trail geometry"
+        ]
+      },
+      {
+        "family": "Reign",
+        "identifiers": [
+          "Maestro suspension with longer travel — 160mm rear",
+          "REIGN wordmark on downtube",
+          "More aggressive geometry than Trance"
+        ]
+      },
+      {
+        "family": "Anthem",
+        "identifiers": [
+          "Maestro XC suspension — 90-100mm travel",
+          "ANTHEM wordmark on downtube",
+          "Skinny XC tube profiles throughout"
+        ]
+      },
+      {
+        "family": "TCR",
+        "identifiers": [
+          "Road race frame — compact geometry",
+          "TCR wordmark on downtube",
+          "Integrated seatpost area on Advanced SL models"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "GIANT wordmark — full length of downtube, drive side, horizontal",
+      "G icon — head tube, both sides",
+      "Model name — seat tube or top tube"
+    ],
+    "logo_contrast": [
+      "White GIANT wordmark on dark frames",
+      "Black GIANT wordmark on white or light frames",
+      "Metallic/chrome lettering on premium Advanced SL carbon models"
+    ]
+  },
+  {
+    "brand": "Scott",
+    "logo_shapes": [
+      "SCOTT wordmark in bold condensed sans-serif capitals — very large format on downtube",
+      "No standalone icon — wordmark only"
+    ],
+    "frame_signatures": [
+      "Split Pivot suspension — rear wheel axle co-located with main pivot on Genius and Ransom models",
+      "TwinLoc suspension remote system — handlebar-mounted remote lever visible along cockpit",
+      "Internal cable routing — fully hidden on all current models"
+    ],
+    "distinctive_colours": [
+      "Neon Yellow/Green — 'Nitro Yellow' used prominently on Genius and Spark models",
+      "Black and Orange — Addict road bike signature colourway",
+      "Blue and Black — common across the MTB range"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "Genius",
+        "identifiers": [
+          "Split Pivot visible at rear dropout",
+          "TwinLoc remote — visible cable routing on handlebar",
+          "GENIUS wordmark on downtube",
+          "150mm rear travel enduro geometry"
+        ]
+      },
+      {
+        "family": "Spark",
+        "identifiers": [
+          "Split Pivot XC geometry — 100-120mm travel",
+          "SPARK wordmark on downtube",
+          "TwinLoc lockout remote"
+        ]
+      },
+      {
+        "family": "Addict",
+        "identifiers": [
+          "Road race frame — ADDICT wordmark on downtube",
+          "Very thin seatstays on RC models"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "SCOTT wordmark — very large, full length of downtube drive side",
+      "Model name — top tube or seat tube in smaller format"
+    ],
+    "logo_contrast": [
+      "White SCOTT wordmark on dark frames",
+      "Black SCOTT wordmark on light frames",
+      "Neon yellow SCOTT wordmark on race colourways"
+    ]
+  },
+  {
+    "brand": "Cube",
+    "logo_shapes": [
+      "CUBE wordmark in bold condensed sans-serif capitals — primary frame decal",
+      "Cube 'C' logomark — stylised geometric C, used on head tube",
+      "Often paired with angular striping patterns"
+    ],
+    "frame_signatures": [
+      "Aggressively styled angular geometric graphics — more graphic-heavy than most premium brands",
+      "Fully internal cable routing on current Stereo models",
+      "Trunnion mount shock on Stereo series",
+      "ABSolution pivot system on Stereo — proprietary linkage"
+    ],
+    "distinctive_colours": [
+      "Black and Blue — 'Actionteam' colourway with electric blue accents",
+      "White and Green — used on entry-level models",
+      "Dark Graphite and Teal — common mid-tier colourway"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "Stereo",
+        "identifiers": [
+          "Full suspension MTB — STEREO wordmark on downtube",
+          "ABSolution linkage with trunnion shock",
+          "STEREO followed by travel number (e.g. STEREO 140, STEREO 150)"
+        ]
+      },
+      {
+        "family": "Reaction",
+        "identifiers": [
+          "Hardtail MTB — REACTION wordmark on downtube",
+          "SUPERSHAPE alloy or carbon frame"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "CUBE wordmark — full downtube, drive side, large format",
+      "Cube C icon — head tube",
+      "Angular graphic panels along downtube and top tube"
+    ],
+    "logo_contrast": [
+      "White CUBE wordmark on dark frames",
+      "Black CUBE wordmark on white or light frames",
+      "Electric blue CUBE wordmark on Actionteam colourways"
+    ]
+  },
+  {
+    "brand": "Orbea",
+    "logo_shapes": [
+      "ORBEA wordmark in rounded sans-serif — distinctive softer letterform",
+      "Orbea 'O' roundel — circular icon used as head tube badge on some models",
+      "MyO custom paint — bikes may have non-standard colourways; look for ORBEA wordmark regardless"
+    ],
+    "frame_signatures": [
+      "Internal cable routing on all current models",
+      "Gain storage system on Occam and Rallon — storage compartment in downtube",
+      "Clean minimal frame aesthetic — less graphic-heavy than Cube or Scott"
+    ],
+    "distinctive_colours": [
+      "Due to MyO custom paint, no single signature colour",
+      "Factory standard includes Matte Black, Gloss White, and various blues/greens",
+      "Look for ORBEA wordmark as primary identifier — colour alone unreliable"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "Occam",
+        "identifiers": [
+          "Trail full-suspension — OCCAM wordmark on downtube",
+          "130mm rear travel, medium-aggressive geometry"
+        ]
+      },
+      {
+        "family": "Rallon",
+        "identifiers": [
+          "Enduro full-suspension — RALLON wordmark on downtube",
+          "160mm rear travel"
+        ]
+      },
+      {
+        "family": "Orca",
+        "identifiers": [
+          "Road race — ORCA wordmark on downtube"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "ORBEA wordmark — downtube, drive side",
+      "Model name — top tube or seat tube"
+    ],
+    "logo_contrast": [
+      "White ORBEA wordmark on dark frames",
+      "Black ORBEA wordmark on light frames"
+    ]
+  },
+  {
+    "brand": "Cannondale",
+    "logo_shapes": [
+      "CANNONDALE full wordmark in bold condensed sans-serif — large format on downtube",
+      "Cannondale 'C' speed-lines icon — stylised C with motion lines, used on head tube",
+      "LEFTY branding on single-leg forks — 'LEFTY' wordmark running along the single carbon leg"
+    ],
+    "frame_signatures": [
+      "Lefty fork — single-leg suspension fork, drive-side leg only; unique and immediately identifiable",
+      "Asymmetric chainstay — drive-side chainstay visibly different in size/profile from non-drive side",
+      "CAAD aluminium construction marking on alloy frames",
+      "Proportional Response (PR) rear suspension on current Scalpel — flex-stay design with no lower pivot"
+    ],
+    "distinctive_colours": [
+      "Leftover Green (Acid Green) — signature bright green on race/performance builds",
+      "Sage Green — muted green used on Topstone gravel",
+      "Black and White — common base colourway"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "Scalpel",
+        "identifiers": [
+          "Lefty fork — single right-side leg, immediately identifiable",
+          "SCALPEL wordmark on downtube",
+          "Asymmetric chainstay design"
+        ]
+      },
+      {
+        "family": "Jekyll",
+        "identifiers": [
+          "JEKYLL wordmark on downtube",
+          "Full suspension trail/enduro geometry — 140-160mm travel"
+        ]
+      },
+      {
+        "family": "Topstone",
+        "identifiers": [
+          "TOPSTONE wordmark on downtube",
+          "Gravel — wide tyre clearance",
+          "Kingpin rear suspension on carbon version"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "CANNONDALE wordmark — full length of downtube, drive side",
+      "Model name — top tube or seat tube",
+      "LEFTY wordmark — along single fork leg on Scalpel models"
+    ],
+    "logo_contrast": [
+      "White CANNONDALE wordmark on dark frames",
+      "Black CANNONDALE wordmark on light frames",
+      "Acid green accent on race colourways"
+    ]
+  },
+  {
+    "brand": "Santa Cruz",
+    "logo_shapes": [
+      "Santa Cruz Bicycles script/wordmark in a distinctive styled font",
+      "SC monogram — used as compact brand identifier on head tube",
+      "Banana slug mascot — occasionally on limited editions"
+    ],
+    "frame_signatures": [
+      "VPP (Virtual Pivot Point) suspension — two short counter-rotating links; lower link drives the shock; present on all current Santa Cruz full-suspension bikes",
+      "Lower-link driven shock — shock positioned low in the frame driven from the lower VPP link",
+      "Flip chip at lower shock mount for High/Low geometry adjustment",
+      "C and CC carbon frame designation distinguishes carbon grade"
+    ],
+    "distinctive_colours": [
+      "No strong single signature colour — earthy tones and occasional bright colourways",
+      "Dark Mint and Gloss Black are common current colourways"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "Megatower",
+        "identifiers": [
+          "VPP lower-link linkage — compact linkage cluster visible mid-frame",
+          "MEGATOWER wordmark on downtube",
+          "160-170mm rear travel, 29\" wheels only"
+        ]
+      },
+      {
+        "family": "Hightower",
+        "identifiers": [
+          "VPP lower-link linkage",
+          "HIGHTOWER wordmark on downtube",
+          "150mm rear travel, 29\" wheels"
+        ]
+      },
+      {
+        "family": "Bronson",
+        "identifiers": [
+          "VPP lower-link linkage",
+          "BRONSON wordmark on downtube",
+          "150mm rear travel, mixed wheel on 2025+"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "Santa Cruz Bicycles or SANTA CRUZ wordmark — large on downtube drive side",
+      "SC monogram — head tube, both sides",
+      "Model name — seat tube or top tube"
+    ],
+    "logo_contrast": [
+      "White wordmark on dark frames",
+      "Black wordmark on light or mid-tone frames"
+    ]
+  },
+  {
+    "brand": "Transition",
+    "logo_shapes": [
+      "TRANSITION wordmark in bold condensed capitals — primary frame decal",
+      "T-circle icon — stylised T inside a circle, used on head tube"
+    ],
+    "frame_signatures": [
+      "Progressive geometry — visibly long and low frames",
+      "Internal cable routing on all current carbon models",
+      "Flip chips on Sentinel and Patrol for geometry adjustment",
+      "Model name 'Patrol' printed on inside of seatstay"
+    ],
+    "distinctive_colours": [
+      "Gloss Hot Sauce (orange-red) — recurring Transition signature colourway",
+      "Bold vivid colourways — bright oranges, greens, turquoise used frequently"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "Sentinel",
+        "identifiers": [
+          "SENTINEL wordmark on downtube",
+          "150-160mm rear travel enduro geometry"
+        ]
+      },
+      {
+        "family": "Patrol",
+        "identifiers": [
+          "PATROL wordmark on downtube and on inside seatstay surface",
+          "160mm rear travel, alloy only"
+        ]
+      },
+      {
+        "family": "Smuggler",
+        "identifiers": [
+          "SMUGGLER wordmark on downtube",
+          "120mm rear travel trail bike"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "TRANSITION wordmark — downtube, drive side",
+      "T icon — head tube",
+      "PATROL text on inside of non-drive seatstay — unique placement"
+    ],
+    "logo_contrast": [
+      "White TRANSITION wordmark on dark frames",
+      "Black TRANSITION wordmark on light frames"
+    ]
+  },
+  {
+    "brand": "Pivot",
+    "logo_shapes": [
+      "PIVOT wordmark in bold clean sans-serif capitals — primary frame decal",
+      "No standalone icon — wordmark only"
+    ],
+    "frame_signatures": [
+      "DW-Link suspension — dual-link design with two short links creating a virtual pivot; visible as two links on either side of the main pivot area forward of the BB",
+      "Vertical shock layout — shock oriented vertically between seat tube and top tube",
+      "Toolshed downtube storage on current Mach 4 SL and Firebird"
+    ],
+    "distinctive_colours": [
+      "Team Orange — used on race builds",
+      "Black and Gold — premium colourway on high-spec builds",
+      "Greystorm (silver-grey) — recurring base colourway on current Mach 4 SL"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "Mach 4 SL",
+        "identifiers": [
+          "DW-Link — dual short links visible at main pivot area",
+          "Vertical shock between seat tube and top tube",
+          "MACH 4 SL wordmark on downtube",
+          "100-120mm rear travel XC geometry"
+        ]
+      },
+      {
+        "family": "Firebird",
+        "identifiers": [
+          "DW-Link suspension",
+          "FIREBIRD wordmark on downtube",
+          "160mm rear travel enduro geometry",
+          "Toolshed storage port on downtube"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "PIVOT wordmark — downtube, drive side, mid-frame",
+      "Model name — seat tube or downtube below brand name"
+    ],
+    "logo_contrast": [
+      "White PIVOT wordmark on dark frames",
+      "Black PIVOT wordmark on light frames",
+      "Orange PIVOT wordmark on Team Orange colourway"
+    ]
+  },
+  {
+    "brand": "Yeti",
+    "logo_shapes": [
+      "YETI wordmark in bold serif-adjacent custom capitals — distinctive letterform with slightly flared serifs",
+      "YETI CYCLES full name used on some models"
+    ],
+    "frame_signatures": [
+      "Switch Infinity suspension — two parallel Kashima gold/bronze vertical rails visible on lower downtube/BB area; completely unique and identifiable from any other brand",
+      "Shock mounted to top tube — shock runs along the top tube on SB130/SB150/SB165",
+      "TURQ series carbon marking — small 'TURQ' badge on premium carbon builds"
+    ],
+    "distinctive_colours": [
+      "Turquoise — Yeti's signature colour since the late 1980s; mid-tone blue-green; highly distinctive",
+      "Anthracite Grey — dark grey metallic, common secondary colourway",
+      "Black — standard across all models"
+    ],
+    "model_family_identifiers": [
+      {
+        "family": "SB130",
+        "identifiers": [
+          "Switch Infinity sliders — parallel Kashima rails on lower downtube",
+          "SB130 wordmark on downtube or seat tube",
+          "130mm rear travel, 29\" wheels"
+        ]
+      },
+      {
+        "family": "SB150",
+        "identifiers": [
+          "Switch Infinity sliders",
+          "SB150 wordmark",
+          "150mm rear travel, 170mm fork"
+        ]
+      },
+      {
+        "family": "SB165",
+        "identifiers": [
+          "Switch Infinity sliders",
+          "SB165 wordmark",
+          "165mm rear travel — most aggressive Yeti MTB"
+        ]
+      }
+    ],
+    "decal_placement": [
+      "YETI wordmark — downtube, drive side",
+      "SB model number — seat tube or below brand wordmark",
+      "TURQ badge — small, near BB on premium builds"
+    ],
+    "logo_contrast": [
+      "White YETI wordmark on turquoise frames",
+      "White YETI wordmark on dark/black frames",
+      "Turquoise YETI wordmark on black frames on some colourways"
+    ]
+  }
+]

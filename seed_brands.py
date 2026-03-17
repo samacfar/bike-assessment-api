@@ -1,8 +1,8 @@
 """
 Seed script — loads bike_brand_visual_fingerprint_seed.json into Supabase brand_reference table.
+Uses only built-in Python libraries (urllib) — no pip installs needed.
 
 Usage:
-    pip install supabase python-dotenv
     python seed_brands.py
 
 Requires .env file with:
@@ -11,45 +11,76 @@ Requires .env file with:
 """
 
 import json
+import urllib.request
+import urllib.error
 import os
 from datetime import datetime, timezone
-from dotenv import load_dotenv
-from supabase import create_client
 
-load_dotenv()
+# ── Load .env manually (no dotenv package needed) ────────────────────────────
+def load_env():
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if not os.path.exists(env_path):
+        raise FileNotFoundError(".env file not found — make sure it exists in the project root")
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, _, value = line.partition("=")
+                os.environ.setdefault(key.strip(), value.strip())
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
-JSON_FILE = "bike_brand_visual_fingerprint_seed.json"
+load_env()
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+JSON_FILE = os.path.join(os.path.dirname(__file__), "bike_brand_visual_fingerprint_seed.json")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env")
+
+
+def supabase_upsert(records: list) -> dict:
+    url = f"{SUPABASE_URL}/rest/v1/brand_reference"
+    payload = json.dumps(records).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=payload,
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Prefer": "resolution=merge-duplicates",  # upsert on conflict
+        },
+    )
+    try:
+        with urllib.request.urlopen(req) as resp:
+            body = resp.read().decode()
+            return {"status": resp.status, "body": body}
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        raise RuntimeError(f"Supabase error {e.code}: {body}")
 
 
 def main():
-    print(f"Connecting to Supabase...")
-    client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
     print(f"Loading {JSON_FILE}...")
     with open(JSON_FILE, "r", encoding="utf-8") as f:
         brands = json.load(f)
 
-    print(f"Found {len(brands)} brands. Upserting into brand_reference table...")
+    print(f"Found {len(brands)} brands.")
 
+    timestamp = datetime.now(timezone.utc).isoformat()
     records = [
         {
             "brand": entry["brand"],
             "reference_data": entry,
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": timestamp,
         }
         for entry in brands
     ]
 
-    # Upsert — safe to run multiple times, updates existing entries
-    result = (
-        client.table("brand_reference")
-        .upsert(records, on_conflict="brand")
-        .execute()
-    )
-
-    print(f"Done. {len(records)} brands seeded successfully.")
+    print(f"Upserting into brand_reference table...")
+    result = supabase_upsert(records)
+    print(f"Done. Status: {result['status']}")
     for r in records:
         print(f"  ✓ {r['brand']}")
 
