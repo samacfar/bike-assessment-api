@@ -2,7 +2,11 @@ import json
 import anthropic
 from app.config import get_settings
 
-# ─── Base system prompts ──────────────────────────────────────────────────────
+# ─── Models ──────────────────────────────────────────────────────────────────
+MODEL_SONNET = "claude-sonnet-4-20250514"
+MODEL_HAIKU  = "claude-haiku-4-5-20251001"
+
+# ─── System prompts ───────────────────────────────────────────────────────────
 
 ASSESSMENT_SYSTEM_PROMPT_BASE = """\
 You are an expert bicycle mechanic and identifier. When given photos of a bike,
@@ -62,7 +66,6 @@ Return ONLY valid JSON for that single component using this schema:
 def build_brand_reference_block(brand_entries: list) -> str:
     if not brand_entries:
         return ""
-
     lines = [
         "## Brand Visual Reference",
         "",
@@ -70,11 +73,9 @@ def build_brand_reference_block(brand_entries: list) -> str:
         "These are confirmed visual signatures — prioritise them over general knowledge.",
         "",
     ]
-
     for entry in brand_entries:
         brand = entry.get("brand", "Unknown")
         lines.append(f"### {brand}")
-
         for s in entry.get("logo_shapes", []):
             lines.append(f"  LOGO: {s}")
         for s in entry.get("frame_signatures", []):
@@ -86,7 +87,6 @@ def build_brand_reference_block(brand_entries: list) -> str:
             ids = "; ".join(fam.get("identifiers", []))
             lines.append(f"  MODEL FAMILY {fname}: {ids}")
         lines.append("")
-
     return "\n".join(lines)
 
 
@@ -128,7 +128,13 @@ def _strip_fences(raw: str) -> str:
     return raw.strip()
 
 
-def run_assessment(base64_images: list, brand_entries: list = None) -> dict:
+def run_assessment(base64_images: list, brand_entries: list = None) -> tuple[dict, str]:
+    """
+    Run bike assessment. Returns (assessment_dict, model_name_used).
+    Currently uses Sonnet for all calls.
+    When Haiku/Sonnet split is implemented, this function will handle
+    the two-stage logic and return which model was ultimately used.
+    """
     client = get_claude_client()
     system_prompt = build_assessment_prompt(brand_entries or [])
 
@@ -139,18 +145,24 @@ def run_assessment(base64_images: list, brand_entries: list = None) -> dict:
     })
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=2048,
+        model=MODEL_SONNET,
+        max_tokens=800,           # reduced from 2048 — output never exceeds this
         system=system_prompt,
         messages=[{"role": "user", "content": image_content}],
     )
 
-    return json.loads(_strip_fences(response.content[0].text))
+    assessment = json.loads(_strip_fences(response.content[0].text))
+    return assessment, MODEL_SONNET
 
 
 def run_challenge(base64_images: list, component_name: str, previous_assessment: dict) -> dict:
+    """
+    Re-run Claude on a specific component that has been challenged.
+    Max 2 images — caller should pass only the most relevant image(s).
+    """
     client = get_claude_client()
-    image_content = build_image_content(base64_images)
+    images = base64_images[:2]    # enforce max 2 images on challenge
+    image_content = build_image_content(images)
     image_content.append({
         "type": "text",
         "text": (
@@ -161,8 +173,8 @@ def run_challenge(base64_images: list, component_name: str, previous_assessment:
     })
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=1024,
+        model=MODEL_SONNET,
+        max_tokens=500,           # reduced from 1024
         system=CHALLENGE_SYSTEM_PROMPT,
         messages=[{"role": "user", "content": image_content}],
     )
