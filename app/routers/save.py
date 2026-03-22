@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
@@ -14,32 +13,26 @@ class AuthorisedField(BaseModel):
     value: str
 
 
-class Correction(BaseModel):
+class CorrectionRow(BaseModel):
     field: str
-    ai_value: str                  # what Claude originally said
-    note: str | None = None        # human challenge note
-    corrected_value: str           # human-verified correct value
+    note: str = ""
+    corrected_value: str = ""
 
 
 class SaveRequest(BaseModel):
-    accuracy_log_id: str = Field(
-        ...,
-        description="ID returned by /assess. Links verified data back to the AI raw output."
-    )
-    make: str
-    model_family: str
-    authorised_fields: list[AuthorisedField] = Field(default_factory=list)
-    corrections: list[Correction] = Field(default_factory=list)
+    assessment_id:   str | None = None
+    session_id:      str | None = None
+    accuracy_log_id: str | None = None
+    make:            str | None = None
+    model:           str | None = None
+    authorised_fields: list[AuthorisedField] = Field(default=[])
+    corrections:     list[CorrectionRow] = Field(default=[])
 
 
 class SaveResponse(BaseModel):
-    assessment_id: str
-    accuracy_log_id: str
-    make: str
-    model_family: str
-    authorised_count: int
-    corrections_count: int
-    timestamp: str
+    saved_fields:      int
+    saved_corrections: int
+    timestamp:         str
 
 
 @router.post("/save", response_model=SaveResponse)
@@ -48,63 +41,44 @@ async def save_assessment(
     supabase: Client = Depends(get_supabase),
 ):
     timestamp = datetime.now(timezone.utc).isoformat()
-    assessment_id = str(uuid.uuid4())
+    saved_fields = 0
+    saved_corrections = 0
 
-    # ── Write human-verified assessment to assessments table ─────────────────
-    assessment_record = {
-        "id": assessment_id,
-        "session_id": assessment_id,
-        "assessment": {
-            "make": body.make,
-            "model_family": body.model_family,
-            "authorised_fields": [f.model_dump() for f in body.authorised_fields],
-        },
-        "image_count": 0,
-    }
-    try:
-        supabase.table("assessments").insert(assessment_record).execute()
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Failed to write assessment: {str(e)}")
-
-    # ── Write corrections to corrections table ────────────────────────────────
-    if body.corrections:
-        correction_records = [
-            {
-                "id": str(uuid.uuid4()),
-                "session_id": assessment_id,
-                "make": body.make,
-                "model": body.model_family,
-                "field": c.field,
-                "challenge_note": c.note,
-                "corrected_value": c.corrected_value,
-                "created_at": timestamp,
-            }
-            for c in body.corrections
-        ]
+    # Update accuracy_log with human-verified verdict
+    if body.accuracy_log_id and body.authorised_fields:
+        verified_summary = {f.field: f.value for f in body.authorised_fields}
         try:
-            supabase.table("corrections").insert(correction_records).execute()
+            supabase.table("accuracy_log").update({
+                "human_verdict":   "accepted",
+                "corrected_value": str(verified_summary),
+            }).eq("id", body.accuracy_log_id).execute()
+            saved_fields = len(body.authorised_fields)
         except Exception as e:
-            raise HTTPException(status_code=502, detail=f"Failed to write corrections: {str(e)}")
+            print(f"[WARN] accuracy_log update failed: {e}")
 
-    # ── Update accuracy_log with human verdict summary ────────────────────────
-    total = len(body.authorised_fields) + len(body.corrections)
-    accuracy_score = round(len(body.authorised_fields) / total, 2) if total > 0 else None
-
-    try:
-        supabase.table("accuracy_log").update({
-            "human_verdict": "completed",
-            "accuracy_score": accuracy_score,
-            "verified_assessment_id": assessment_id,
-        }).eq("id", body.accuracy_log_id).execute()
-    except Exception as e:
-        print(f"[WARN] accuracy_log update failed: {e}")
+    # Save corrections — these are the learning signals
+    if body.corrections:
+        records = []
+        for c in body.corrections:
+            if not c.corrected_value:
+                continue
+            records.append({
+                "make":            body.make,
+                "model":           body.model,
+                "field":           c.field,
+                "challenge_note":  c.note or None,
+                "corrected_value": c.corrected_value,
+                "created_at":      timestamp,
+            })
+        if records:
+            try:
+                supabase.table("corrections").insert(records).execute()
+                saved_corrections = len(records)
+            except Exception as e:
+                raise HTTPException(status_code=502, detail=f"Corrections save failed: {str(e)}")
 
     return SaveResponse(
-        assessment_id=assessment_id,
-        accuracy_log_id=body.accuracy_log_id,
-        make=body.make,
-        model_family=body.model_family,
-        authorised_count=len(body.authorised_fields),
-        corrections_count=len(body.corrections),
+        saved_fields=saved_fields,
+        saved_corrections=saved_corrections,
         timestamp=timestamp,
     )
