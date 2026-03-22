@@ -12,7 +12,8 @@ IDENTIFICATION ORDER — work through each step before answering:
 1. HEAD TUBE — read brand name, badge, or logo
 2. FRAME SHAPE + TYRES — determine bike type (MTB / Road / Gravel / eMTB etc)
 3. FRAME COLOUR — note primary and secondary colours
-4. TUBE JUNCTIONS — weld beads visible = metal frame (Aluminium or Steel), not Carbon
+4. TUBE JUNCTIONS — weld beads visible = metal frame (Aluminium or Steel), NOT Carbon
+   — If weld beads confirmed: any trim designation with "C" (e.g. C1, C2) is WRONG — must be "A" tier
 5. DOWN TUBE — model family name, generation callout (e.g. EVO, SL, VLT), any text near BB end
 6. TOP TUBE + SEAT TUBE — model name, trim level, size marking
 7. YEAR — deduce from components or frame details if possible
@@ -35,7 +36,9 @@ Colour: [primary colour(s) of frame as seen in photo]
 Model Family: [primary model name e.g. Sight, Stumpjumper, Fuel EX, or Unknown]
 Generation/Variant: [sub-model or generation e.g. VLT, EVO, SL, or Unknown]
 Frame Spec: [material callout on frame e.g. Carbon, Alloy, or Unknown]
-Trim Level: [spec tier as badged e.g. C1, C2, Comp, Expert, S-Works, or Unknown]
+Trim Level: [spec tier as badged e.g. C1, C2, A1, A2, Comp, Expert, S-Works, or Unknown]
+— IMPORTANT: For Norco Sight VLT, C = Carbon frame, A = Aluminium frame. Never assign a C trim to an aluminium bike.
+— Cross-check: if Frame Material = Aluminium, Trim Level must begin with A (e.g. A1, A2) not C.
 Year (approx): [year or range, or Unknown]
 Electric: [Yes - motor brand/type if visible / No / Unknown]
 Frame Material: [Carbon / Aluminium / Steel / Titanium / Unknown — weld beads confirm metal]
@@ -106,13 +109,15 @@ def run_challenge(base64_image: str, field: str, confirmed_facts: str, note: str
     if note:
         user_msg += f"User note: {note}\n\n"
         user_msg += (
-            f"Search the web using the confirmed facts and user note to find the correct value "
-            f"for '{field}'. Use a short direct search query e.g. 'Norco Sight VLT red trim level'.\n\n"
+            f"Use your knowledge of bike models to answer '{field}' directly. "
+            f"The confirmed facts and user note give you enough context. "
+            f"Only use web search if you genuinely cannot answer from your training knowledge.\n\n"
         )
     else:
         user_msg += (
             f"Look carefully at the image to identify '{field}'. "
-            f"If not visible, use web search with the confirmed facts.\n\n"
+            f"Use your knowledge of bike models to help. "
+            f"Only search the web if the answer is not visible and not in your training knowledge.\n\n"
         )
     user_msg += (
         f"Reply with ONLY this single line, nothing else:\n"
