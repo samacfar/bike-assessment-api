@@ -90,44 +90,53 @@ def run_assessment(base64_image: str) -> str:
 
 
 def run_challenge(base64_image: str, field: str, confirmed_facts: str, note: str) -> str:
-    """Single Sonnet call with image + confirmed facts to resolve a specific field."""
+    """Resolve a specific field using web search + confirmed facts.
+    If a note is provided, skip the image — web search is faster and sufficient.
+    If no note, include the image for visual re-examination.
+    """
     settings = get_settings()
     client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
-    # Build search-style query from confirmed facts
+    use_image = not note.strip()  # Only send image if no note given
+
     user_msg = (
         f"Confirmed facts about this bike: {confirmed_facts}\n\n"
         f"Field to resolve: {field}\n"
     )
     if note:
-        user_msg += f"Additional context: {note}\n\n"
+        user_msg += f"User note: {note}\n\n"
+        user_msg += (
+            f"Search the web using the confirmed facts and user note to find the correct value "
+            f"for '{field}'. Use a short direct search query e.g. 'Norco Sight VLT red trim level'.\n\n"
+        )
+    else:
+        user_msg += (
+            f"Look carefully at the image to identify '{field}'. "
+            f"If not visible, use web search with the confirmed facts.\n\n"
+        )
     user_msg += (
-        f"Look carefully at the image and use your knowledge to identify the correct value "
-        f"for '{field}'. If it cannot be determined from the image, use web search with "
-        f"the confirmed facts as the search query.\n\n"
-        f"Reply with ONLY this single line:\n"
+        f"Reply with ONLY this single line, nothing else:\n"
         f"{field}: [value] | Confidence: [High/Medium/Low]"
     )
+
+    content = []
+    if use_image:
+        content.append({
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": "image/jpeg",
+                "data": base64_image,
+            }
+        })
+    content.append({"type": "text", "text": user_msg})
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=200,
         tools=[{"type": "web_search_20250305", "name": "web_search"}],
-        system="You are a bicycle identification specialist. Answer concisely with only the requested field value.",
-        messages=[{
-            "role": "user",
-            "content": [
-                {
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": "image/jpeg",
-                        "data": base64_image,
-                    }
-                },
-                {"type": "text", "text": user_msg}
-            ]
-        }]
+        system="You are a bicycle identification specialist. Answer with only the requested field value in the specified format.",
+        messages=[{"role": "user", "content": content}]
     )
 
     # Extract text from response (may include tool_use blocks from web search)
