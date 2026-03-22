@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BikeID Assessor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: monospace; background: #1a1a1a; color: #e0e0e0; padding: 16px; font-size: 14px; }
+
+  h1 { font-size: 17px; margin-bottom: 16px; color: #fff; letter-spacing: 1px; }
+  h1 span { font-size: 10px; color: #444; font-weight: normal; letter-spacing: 0; margin-left: 8px; }
+
+  .section { background: #2a2a2a; border: 1px solid #3a3a3a; padding: 12px 14px; margin-bottom: 10px; border-radius: 4px; }
+  .section-title { font-size: 10px; text-transform: uppercase; color: #666; margin-bottom: 8px; letter-spacing: 1px; }
+
+  input[type="text"], input[type="password"], textarea {
+    width: 100%; padding: 7px 9px; background: #111; border: 1px solid #444;
+    color: #e0e0e0; font-family: monospace; font-size: 13px; border-radius: 3px;
+  }
+  input:focus, textarea:focus { outline: none; border-color: #888; }
+
+  .btn-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 8px; }
+  button { padding: 7px 13px; border: 1px solid #555; background: #2e2e2e; color: #e0e0e0;
+           font-family: monospace; font-size: 12px; cursor: pointer; border-radius: 3px; white-space: nowrap; }
+  button:hover:not(:disabled) { background: #3a3a3a; border-color: #888; }
+  button:disabled { opacity: 0.35; cursor: not-allowed; }
+  button.primary { background: #1a3f1a; border-color: #3a7a3a; color: #afffaf; }
+  button.primary:hover:not(:disabled) { background: #225a22; }
+  button.save-btn { background: #1a2f4a; border-color: #3a6aaa; color: #aaddff; }
+  button.save-btn:hover:not(:disabled) { background: #22447a; }
+
+  /* Photo */
+  #placeholder { width: 100%; height: 130px; background: #111; border: 1px dashed #3a3a3a;
+                 display: flex; align-items: center; justify-content: center; color: #444; font-size: 12px; margin-top: 8px; }
+  #preview { width: 100%; max-height: 240px; object-fit: contain; background: #111; display: none; border: 1px solid #3a3a3a; margin-top: 8px; }
+  #camStream { width: 100%; max-height: 240px; object-fit: contain; background: #000; display: none; border: 1px solid #3a3a3a; margin-top: 8px; }
+  #fileInput { display: none; }
+
+  /* Status */
+  #status { font-size: 12px; color: #666; margin-top: 8px; min-height: 16px; }
+  #status.error { color: #ef8f8f; }
+  #status.ok    { color: #8fef8f; }
+  .spin { display: inline-block; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Quality warning */
+  #qualityWarn { display: none; background: #2a1800; border: 1px solid #8a5000; color: #ffcc66;
+                 padding: 8px 12px; border-radius: 3px; font-size: 12px; margin-bottom: 8px; }
+
+  /* Results */
+  #resultsArea { display: none; }
+
+  /* Table */
+  .atbl { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .atbl th { font-size: 10px; text-transform: uppercase; color: #555; padding: 4px 6px;
+             border-bottom: 1px solid #333; text-align: left; }
+  .atbl td { padding: 0; border-bottom: 1px solid #1e1e1e; vertical-align: top; }
+
+  .row-main { display: flex; align-items: center; padding: 6px 6px; gap: 7px; }
+  .row-label { width: 115px; flex-shrink: 0; font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.3px; }
+  .row-value { flex: 1; font-size: 13px; line-height: 1.4; }
+  .rv-pending    { color: #c8c8c8; }
+  .rv-authorised { color: #6fef6f; }
+  .rv-challenged { color: #efbf6f; }
+  .rv-running    { color: #666; font-style: italic; }
+
+  .row-acts { display: flex; gap: 3px; flex-shrink: 0; }
+  .row-acts button { padding: 2px 7px; font-size: 11px; }
+  .btn-ok   { border-color: #2a6a2a; color: #8fef8f; }
+  .btn-ok.on { background: #142a14; border-color: #4faf4f; }
+  .btn-ch   { border-color: #6a5a2a; color: #efcf8f; }
+  .btn-ch.on { background: #2a2010; }
+  .btn-re   { border-color: #3a3a7a; color: #9f9fef; }
+
+  .sdot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .sd-p { background: #444; }
+  .sd-a { background: #6fef6f; box-shadow: 0 0 3px #6fef6f77; }
+  .sd-c { background: #efbf6f; }
+
+  .conf { font-size: 10px; padding: 1px 5px; border-radius: 6px; margin-left: 5px; display: inline-block; }
+  .cf-h { background: #142a14; color: #6fef6f; border: 1px solid #2a5a2a; }
+  .cf-m { background: #2a2a14; color: #efef6f; border: 1px solid #5a5a2a; }
+  .cf-l { background: #2a1414; color: #ef8f8f; border: 1px solid #5a2a2a; }
+
+  .tbl-sep td { padding: 3px 6px; background: #1c1c1c; font-size: 10px; color: #444;
+                text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #252525; }
+
+  /* Challenge input */
+  .chal-inp { display: none; padding: 0 6px 7px 128px; background: #1a1a1a; }
+  .chal-inp textarea { font-size: 12px; min-height: 42px; resize: vertical; }
+  .chal-inp .btn-row { margin-top: 4px; }
+
+  /* Save */
+  #saveBar { display: none; margin-top: 6px; }
+  #saveCount { font-size: 11px; color: #555; margin-top: 5px; }
+  .save-note { font-size: 10px; color: #444; margin-top: 4px; }
+
+  .note { font-size: 11px; color: #555; margin-top: 5px; }
+</style>
+</head>
+<body>
+
+<h1>BIKEID ASSESSOR <span id="buildStamp"></span></h1>
+
+<div class="section">
+  <div class="section-title">Backend URL</div>
+  <input type="text" id="backendUrl" placeholder="https://bike-assessment-api-production.up.railway.app" />
+  <div class="note">Railway backend · Sonnet · brand fingerprints · saves to Supabase</div>
+</div>
+
+<div class="section">
+  <div class="section-title">Bike Photo</div>
+  <div id="placeholder">No photo loaded</div>
+  <video id="camStream" autoplay playsinline></video>
+  <img id="preview" alt="Bike" />
+  <div class="btn-row">
+    <button id="btnCamera">📷 Camera</button>
+    <button id="btnUpload">📁 Upload</button>
+    <button id="btnSnap" disabled>⚡ Snap</button>
+    <button id="btnClear" disabled>✕ Clear</button>
+    <input type="file" id="fileInput" accept="image/*" />
+  </div>
+</div>
+
+<div class="section">
+  <div class="btn-row">
+    <button class="primary" id="btnAssess" disabled>▶ Run Assessment</button>
+  </div>
+  <div id="status"></div>
+</div>
+
+<div class="section" id="resultsArea">
+  <div id="qualityWarn">⚠ <strong>Poor image quality:</strong> <span id="qualityReason"></span></div>
+  <div class="section-title">Results — authorise each row, then save</div>
+
+  <table class="atbl">
+    <thead><tr>
+      <th style="width:8px"></th>
+      <th style="width:120px">Field</th>
+      <th>Value</th>
+      <th style="width:100px">Actions</th>
+    </tr></thead>
+    <tbody id="assessBody"></tbody>
+  </table>
+
+  <div id="saveBar">
+    <div class="btn-row" style="margin-top:10px;">
+      <button class="save-btn" id="btnSave" disabled>💾 Save Authorised Rows</button>
+    </div>
+    <div id="saveCount"></div>
+    <div class="save-note">Only ✓ authorised rows saved · corrections feed learning pipeline</div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let img64            = null;
+let cameraStream     = null;
+let assessmentId     = null;
+let accuracyLogId    = null;
+let sessionId        = null;
+let sessionCorrections = [];
+const rowStates = {};
+const rowData   = {};
+
+// ── Fixed field IDs ───────────────────────────────────────────────────────────
+const FID = {
+  'quality flag':         'qlt_flag',
+  'make/brand':           'ov_make',  'make': 'ov_make',  'brand': 'ov_make',
+  'type':                 'ov_type',
+  'colour':               'ov_colour', 'color': 'ov_colour',
+  'model family':         'ov_model_family',
+  'generation/variant':   'ov_generation', 'generation': 'ov_generation',
+  'frame spec':           'ov_frame_spec',
+  'trim level':           'ov_trim',   'trim': 'ov_trim',
+  'year (approx)':        'ov_year',   'year': 'ov_year',
+  'electric':             'ov_electric',
+  'frame material':       'ov_frame_mat',
+  'condition':            'ov_condition',
+  'cassette':             'comp_cassette',
+  'rear derailleur':      'comp_deraill', 'derailleur': 'comp_deraill',
+  'shifters':             'comp_shifters', 'shifter': 'comp_shifters',
+  'brakes':               'comp_brakes',
+  'wheels/rims':          'comp_wheels',  'wheels': 'comp_wheels',
+  'tyres':                'comp_tyres',   'tires': 'comp_tyres',
+  'handlebars':           'comp_bars',
+  'saddle':               'comp_saddle',
+  'fork':                 'comp_fork',
+  'new rrp (approx)':     'val_rrp',   'new rrp': 'val_rrp',
+  'current market value': 'val_market',
+  'confidence in value':  'val_conf',
+};
+
+// ── DOM ───────────────────────────────────────────────────────────────────────
+const backendUrlEl = document.getElementById('backendUrl');
+const preview      = document.getElementById('preview');
+const placeholder  = document.getElementById('placeholder');
+const camStream    = document.getElementById('camStream');
+const btnCamera    = document.getElementById('btnCamera');
+const btnUpload    = document.getElementById('btnUpload');
+const btnSnap      = document.getElementById('btnSnap');
+const btnClear     = document.getElementById('btnClear');
+const fileInput    = document.getElementById('fileInput');
+const btnAssess    = document.getElementById('btnAssess');
+const statusEl     = document.getElementById('status');
+const resultsArea  = document.getElementById('resultsArea');
+const assessBody   = document.getElementById('assessBody');
+const saveBar      = document.getElementById('saveBar');
+const btnSave      = document.getElementById('btnSave');
+const saveCount    = document.getElementById('saveCount');
+const qualityWarn  = document.getElementById('qualityWarn');
+const qualityReason = document.getElementById('qualityReason');
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getBackend() { return (backendUrlEl.value.trim() || 'https://bike-assessment-api-production.up.railway.app').replace(/\/$/, ''); }
+function setStatus(m, c='') { statusEl.innerHTML = m; statusEl.className = c; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function conf(c) {
+  c = (c||'').toLowerCase();
+  if (c.includes('high')) return ' <span class="conf cf-h">HIGH</span>';
+  if (c.includes('low'))  return ' <span class="conf cf-l">LOW</span>';
+  if (c.includes('med'))  return ' <span class="conf cf-m">MED</span>';
+  return '';
+}
+function clean(s) { return String(s||'').replace(/\*\*/g,'').replace(/\*/g,'').trim(); }
+
+// ── Parse Claude text response into rows ──────────────────────────────────────
+function parseResponse(text) {
+  const rows = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  let section = null;
+  const BLEED = ['COMPONENTS','BIKE OVERVIEW','Frame Spec:','Trim Level:','Model Family:',
+                 'Year (approx):','Frame Material:',' Type:',' Colour:','Electric:',
+                 'Condition:','Cassette:','Brakes:','Rear Derailleur:'];
+
+  for (const line of lines) {
+    const low = line.toLowerCase();
+    if (low.startsWith('image quality'))    { section = 'quality';   continue; }
+    if (low.startsWith('bike overview'))    { section = 'overview';  continue; }
+    if (low.startsWith('components'))       { section = 'component'; continue; }
+    if (low.startsWith('estimated value'))  { section = 'value';     continue; }
+    if (!line.includes(':')) continue;
+
+    const pi = line.indexOf('|'), ci = line.indexOf(':');
+    const label = clean(line.slice(0, ci));
+    const value = clean(pi > -1 ? line.slice(ci+1, pi) : line.slice(ci+1));
+    const confidence = pi > -1 ? line.slice(pi+1).replace(/confidence:/i,'').trim() : null;
+
+    if (!label || !value || label.length > 55) continue;
+    if (BLEED.some(p => value.includes(p)) || value.length > 110) continue;
+
+    const key = label.toLowerCase().trim();
+    const pfx = section === 'component' ? 'comp_' : section === 'value' ? 'val_' : section === 'quality' ? 'qlt_' : 'ov_';
+    const id  = FID[key] || (pfx + key.replace(/[^a-z0-9]+/g, '_'));
+    rows.push({ id, label, value, confidence, section: section || 'overview' });
+  }
+  return rows;
+}
+
+// ── Camera ────────────────────────────────────────────────────────────────────
+btnCamera.addEventListener('click', async () => {
+  if (cameraStream) { stopCam(); return; }
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } } });
+    camStream.srcObject = cameraStream;
+    camStream.style.display = 'block';
+    placeholder.style.display = 'none';
+    preview.style.display = 'none';
+    btnSnap.disabled = false;
+    btnCamera.textContent = '⏹ Stop';
+  } catch(e) { setStatus('Camera error: ' + e.message, 'error'); }
+});
+
+btnSnap.addEventListener('click', () => {
+  const c = document.createElement('canvas');
+  c.width = camStream.videoWidth; c.height = camStream.videoHeight;
+  c.getContext('2d').drawImage(camStream, 0, 0);
+  img64 = c.toDataURL('image/jpeg', 0.85).split(',')[1];
+  preview.src = 'data:image/jpeg;base64,' + img64;
+  preview.style.display = 'block';
+  stopCam();
+  btnClear.disabled = false; btnAssess.disabled = false;
+  setStatus('Photo captured.', 'ok');
+});
+
+function stopCam() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  camStream.style.display = 'none'; btnSnap.disabled = true;
+  btnCamera.textContent = '📷 Camera';
+  if (!img64) placeholder.style.display = 'flex';
+}
+
+btnUpload.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    img64 = ev.target.result.split(',')[1];
+    preview.src = ev.target.result; preview.style.display = 'block';
+    placeholder.style.display = 'none';
+    btnClear.disabled = false; btnAssess.disabled = false;
+    setStatus('Image loaded: ' + f.name, 'ok');
+  };
+  r.readAsDataURL(f); fileInput.value = '';
+});
+
+btnClear.addEventListener('click', () => {
+  img64 = null; preview.style.display = 'none'; placeholder.style.display = 'flex';
+  btnClear.disabled = true; btnAssess.disabled = true;
+  resultsArea.style.display = 'none';
+  sessionCorrections = []; assessmentId = null; accuracyLogId = null;
+  setStatus('');
+});
+
+// ── Assessment ────────────────────────────────────────────────────────────────
+btnAssess.addEventListener('click', async () => {
+  if (!img64) { setStatus('No image loaded.', 'error'); return; }
+  Object.keys(rowStates).forEach(k => delete rowStates[k]);
+  Object.keys(rowData).forEach(k => delete rowData[k]);
+  sessionCorrections = [];
+  btnAssess.disabled = true;
+  resultsArea.style.display = 'none';
+  qualityWarn.style.display = 'none';
+  setStatus('<span class="spin">⟳</span> Assessing via Railway...', '');
+
+  try {
+    const r = await fetch(getBackend() + '/assess', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ images: [img64] }),
+      signal: AbortSignal.timeout(90000)
+    });
+    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e?.detail || 'HTTP ' + r.status); }
+    const data = await r.json();
+
+    assessmentId  = data.assessment_id;
+    accuracyLogId = data.accuracy_log_id;
+    sessionId     = data.session_id;
+
+    const rows = parseResponse(data.raw_text || '');
+
+    if (rows.length < 3) {
+      resultsArea.style.display = 'block';
+      assessBody.innerHTML = '<tr><td colspan="4" style="padding:12px;color:#efef6f;font-size:12px;white-space:pre-wrap;">Raw response:\n\n' + esc(data.raw_text || JSON.stringify(data)) + '</td></tr>';
+      saveBar.style.display = 'none';
+      setStatus('Could not parse response — raw output shown above.', 'error');
+      return;
+    }
+
+    buildTable(rows);
+    checkQuality(rows);
+    resultsArea.style.display = 'block';
+    saveBar.style.display = 'block';
+    setStatus('Assessment complete · ID: ' + (assessmentId||'').slice(0,8) + '...', 'ok');
+
+  } catch(e) {
+    setStatus('Error: ' + e.message, 'error');
+    console.error(e);
+  } finally {
+    btnAssess.disabled = false;
+  }
+});
+
+// ── Quality check ─────────────────────────────────────────────────────────────
+function checkQuality(rows) {
+  const q = rows.find(r => r.id === 'qlt_flag');
+  if (q && q.value.toUpperCase().startsWith('POOR')) {
+    qualityReason.textContent = q.value.replace(/^POOR\s*[-:]\s*/i,'');
+    qualityWarn.style.display = 'block';
+  }
+}
+
+// ── Build table ───────────────────────────────────────────────────────────────
+function buildTable(rows) {
+  assessBody.innerHTML = '';
+  const visible = rows.filter(r => r.section !== 'quality');
+  let lastSec = null;
+  const secLabels = { overview: 'Bike Overview', component: 'Components', value: 'Estimated Value' };
+
+  for (const row of visible) {
+    rowStates[row.id] = 'pending';
+    rowData[row.id]   = row.value;
+
+    if (row.section !== lastSec) {
+      const sep = document.createElement('tr'); sep.className = 'tbl-sep';
+      sep.innerHTML = '<td colspan="4">' + (secLabels[row.section]||row.section) + '</td>';
+      assessBody.appendChild(sep); lastSec = row.section;
+    }
+
+    const tr = document.createElement('tr'); tr.id = 'tr_' + row.id;
+    tr.innerHTML =
+      '<td><div class="row-main" style="justify-content:center;padding-right:0">' +
+        '<span class="sdot sd-p" id="sd_' + row.id + '"></span></div></td>' +
+      '<td><div class="row-main" style="padding-left:4px">' +
+        '<span class="row-label">' + esc(row.label) + '</span></div></td>' +
+      '<td><div class="row-main" style="padding-left:0">' +
+        '<span class="row-value rv-pending" id="rv_' + row.id + '">' +
+          esc(row.value) + (row.confidence ? conf(row.confidence) : '') +
+        '</span></div></td>' +
+      '<td><div class="row-main row-acts">' +
+        '<button class="btn-ok" id="ba_' + row.id + '" onclick="authRow(\'' + row.id + '\')" title="Authorise">✓</button>' +
+        '<button class="btn-ch" id="bc_' + row.id + '" onclick="togChal(\'' + row.id + '\')" title="Challenge">✎</button>' +
+        '<button class="btn-re" id="br_' + row.id + '" onclick="rerunRow(\'' + row.id + '\')" title="Re-run">↺</button>' +
+      '</div></td>';
+    assessBody.appendChild(tr);
+
+    const chalTr = document.createElement('tr'); chalTr.id = 'chaltr_' + row.id;
+    chalTr.innerHTML =
+      '<td colspan="4"><div class="chal-inp" id="chalinp_' + row.id + '">' +
+        '<textarea id="chalnote_' + row.id + '" placeholder="What\'s wrong? Leave blank to just re-run"></textarea>' +
+        '<div class="btn-row">' +
+          '<button class="btn-re" onclick="rerunRow(\'' + row.id + '\')">↺ Re-run with note</button>' +
+          '<button onclick="togChal(\'' + row.id + '\')">Cancel</button>' +
+        '</div></div></td>';
+    assessBody.appendChild(chalTr);
+  }
+  updateSaveBar();
+}
+
+// ── Row actions ───────────────────────────────────────────────────────────────
+function authRow(id) {
+  rowStates[id] = rowStates[id] === 'authorised' ? 'pending' : 'authorised';
+  refreshRow(id); updateSaveBar();
+  if (rowStates[id] === 'authorised') {
+    const lEl = document.querySelector('#tr_' + id + ' .row-label');
+    const lab = lEl ? lEl.textContent : id;
+    if (rowData[id] && !rowData[id].toLowerCase().includes('unknown'))
+      sessionCorrections.push({ field: lab, note: 'confirmed: ' + rowData[id], corrected_value: rowData[id] });
+  }
+}
+
+function togChal(id) {
+  const el = document.getElementById('chalinp_' + id);
+  const btn = document.getElementById('bc_' + id);
+  const open = el.style.display === 'block';
+  el.style.display = open ? 'none' : 'block';
+  btn.className = open ? 'btn-ch' : 'btn-ch on';
+}
+
+async function rerunRow(id) {
+  const noteEl = document.getElementById('chalnote_' + id);
+  const note   = noteEl ? noteEl.value.trim() : '';
+  const lEl    = document.querySelector('#tr_' + id + ' .row-label');
+  const label  = lEl ? lEl.textContent : id;
+  const isUnknown = (rowData[id]||'').toLowerCase().includes('unknown') || !(rowData[id]||'');
+
+  if (note) sessionCorrections.push({ field: label, note, corrected_value: '' });
+
+  // Build confirmed facts from authorised rows
+  const facts = Object.entries(rowStates)
+    .filter(([,s]) => s === 'authorised')
+    .map(([rid]) => { const l = document.querySelector('#tr_' + rid + ' .row-label'); return l ? l.textContent + ': ' + rowData[rid] : null; })
+    .filter(Boolean).join(', ');
+
+  const brBtn = document.getElementById('br_' + id);
+  brBtn.disabled = true; brBtn.textContent = '⟳';
+  const rvEl = document.getElementById('rv_' + id);
+  if (rvEl) { rvEl.className = 'row-value rv-running'; rvEl.textContent = '⟳'; }
+  setStatus('<span class="spin">⟳</span> Resolving "' + label + '"...', '');
+
+  try {
+    const r = await fetch(getBackend() + '/challenge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image: img64,
+        field: label,
+        confirmed_facts: facts,
+        note: note,
+        accuracy_log_id: accuracyLogId
+      }),
+      signal: AbortSignal.timeout(60000)
+    });
+    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e?.detail || 'HTTP ' + r.status); }
+    const data = await r.json();
+    const result = data.result || '';
+
+    // Parse single-line or extract from full response
+    let newValue = null, newConf = null;
+    const ci = result.indexOf(':'), pi = result.indexOf('|');
+    if (ci > -1 && ci < 50) {
+      newValue = clean(pi > -1 ? result.slice(ci+1,pi) : result.slice(ci+1));
+      const cm = result.match(/confidence:\s*(\w+)/i) || result.match(/\b(high|medium|low)\b/i);
+      newConf = cm ? cm[1] : null;
+    } else if (result.length < 100) {
+      newValue = clean(result);
+    }
+
+    if (newValue && newValue.length > 0 && newValue.length < 100) {
+      rowData[id] = newValue;
+      rowStates[id] = 'challenged';
+      if (rvEl) rvEl.innerHTML = esc(newValue) + (newConf ? conf(newConf) : '');
+      sessionCorrections.push({ field: label, note: note || 'rerun', corrected_value: newValue });
+      if (noteEl) noteEl.value = '';
+      togChal(id);
+      setStatus('"' + label + '" updated.', 'ok');
+    } else {
+      rowStates[id] = 'challenged';
+      if (rvEl) rvEl.textContent = rowData[id] || 'Unknown';
+      setStatus('No clear answer found for "' + label + '".', '');
+    }
+  } catch(e) {
+    setStatus('Error: ' + e.message, 'error');
+    if (rvEl) { rvEl.textContent = rowData[id] || 'Unknown'; rvEl.className = 'row-value rv-pending'; }
+  } finally {
+    brBtn.disabled = false; brBtn.textContent = '↺';
+    refreshRow(id); updateSaveBar();
+  }
+}
+
+function refreshRow(id) {
+  const s = rowStates[id];
+  const rv = document.getElementById('rv_' + id);
+  const sd = document.getElementById('sd_' + id);
+  const ba = document.getElementById('ba_' + id);
+  if (rv) rv.className = 'row-value rv-' + s;
+  if (sd) sd.className = 'sdot sd-' + s[0];
+  if (ba) ba.className = 'btn-ok' + (s === 'authorised' ? ' on' : '');
+}
+
+function updateSaveBar() {
+  const total = Object.keys(rowStates).length;
+  const auth  = Object.values(rowStates).filter(s => s === 'authorised').length;
+  btnSave.disabled = auth === 0;
+  btnSave.textContent = '💾 Save ' + auth + ' Authorised Row' + (auth !== 1 ? 's' : '');
+  saveCount.textContent = auth + ' of ' + total + ' rows authorised';
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+btnSave.addEventListener('click', async () => {
+  const toSave = Object.entries(rowStates)
+    .filter(([,s]) => s === 'authorised')
+    .map(([id]) => ({ field: id, value: rowData[id] }));
+  if (!toSave.length) return;
+
+  btnSave.disabled = true;
+  setStatus('<span class="spin">⟳</span> Saving to Supabase...', '');
+
+  // Get Make and Model from authorised rows for corrections keying
+  const make  = rowData['ov_make']  || null;
+  const model = rowData['ov_model_family'] || null;
+
+  try {
+    const r = await fetch(getBackend() + '/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        assessment_id:     assessmentId,
+        session_id:        sessionId,
+        accuracy_log_id:   accuracyLogId,
+        make, model,
+        authorised_fields: toSave,
+        corrections:       sessionCorrections.filter(c => c.corrected_value)
+      }),
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e?.detail || 'HTTP ' + r.status); }
+    const data = await r.json();
+    setStatus('✓ ' + data.saved_fields + ' rows saved · ' + data.saved_corrections + ' corrections logged.', 'ok');
+    toSave.forEach(({field}) => { const el = document.getElementById('rv_'+field); if (el) el.style.opacity='0.55'; });
+  } catch(e) {
+    setStatus('Save error: ' + e.message, 'error');
+    console.log('Save payload:', { assessment_id: assessmentId, accuracy_log_id: accuracyLogId, authorised_fields: toSave });
+  } finally {
+    btnSave.disabled = false; updateSaveBar();
+  }
+});
+
+// ── Persist backend URL ───────────────────────────────────────────────────────
+const savedUrl = localStorage.getItem('bikeBackendUrl');
+backendUrlEl.value = savedUrl || 'https://bike-assessment-api-production.up.railway.app';
+backendUrlEl.addEventListener('input', () => localStorage.setItem('bikeBackendUrl', backendUrlEl.value));
+
+// ── Build stamp ───────────────────────────────────────────────────────────────
+document.getElementById('buildStamp').textContent = 'v6 · 19 Mar 2026 · NZT';
+</script>
+</body>
+</html>
