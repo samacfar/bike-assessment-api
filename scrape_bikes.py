@@ -434,7 +434,69 @@ class BikeExchange(Source):
                 yield first
 
 
-SOURCES = {s.name: s for s in [Pinkbike(), Reddit(), Ebay(), BikeExchange()]}
+class BikeRegister(Source):
+    name = "bikeregister"
+    LIST_URL = "https://www.bikeregister.com/stolen-bikes"
+
+    def candidate_urls(self) -> Iterator[str]:
+        for page in range(1, 400):
+            if self.dropped:
+                return
+            url = f"{self.LIST_URL}?page={page}"
+            resp = self._fetch(url)
+            if resp is None:
+                if self.dropped:
+                    return
+                break
+            soup = BeautifulSoup(resp.text, "html.parser")
+            inline_images: set[str] = set()
+            for img in soup.find_all("img"):
+                src = img.get("src") or img.get("data-src") or ""
+                if not src:
+                    continue
+                full = src if src.startswith("http") else urljoin(url, src)
+                if re.search(r"\.(jpe?g|png|webp)(\?|$)", full, re.I) and \
+                   "logo" not in full.lower() and "icon" not in full.lower():
+                    inline_images.add(full)
+            detail_urls: set[str] = set()
+            for a in soup.find_all("a", href=True):
+                href = a["href"]
+                if re.search(r"/stolen-bikes?/[^/?#]+$", href):
+                    detail_urls.add(urljoin(url, href.split("?")[0]))
+            if not inline_images and not detail_urls:
+                log.info("bikeregister: no more listings at page %d", page)
+                return
+            log.info("bikeregister p%d: %d inline images, %d detail pages",
+                     page, len(inline_images), len(detail_urls))
+            for u in inline_images:
+                yield u
+            for detail in detail_urls:
+                if self.dropped:
+                    return
+                yield from self._listing_images(detail)
+                time.sleep(REQUEST_DELAY)
+            time.sleep(REQUEST_DELAY)
+
+    def _listing_images(self, url: str) -> Iterator[str]:
+        resp = self._fetch(url)
+        if resp is None:
+            return
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for og in soup.find_all("meta", property="og:image"):
+            c = og.get("content")
+            if c:
+                yield c
+        for img in soup.find_all("img"):
+            src = img.get("src") or img.get("data-src") or ""
+            if not src:
+                continue
+            full = src if src.startswith("http") else urljoin(url, src)
+            if re.search(r"\.(jpe?g|png|webp)(\?|$)", full, re.I) and \
+               "logo" not in full.lower() and "icon" not in full.lower():
+                yield full
+
+
+SOURCES = {s.name: s for s in [Pinkbike(), Reddit(), Ebay(), BikeExchange(), BikeRegister()]}
 
 
 # ----- Main -----

@@ -5,7 +5,8 @@ images **≥ 1500 px wide**, deduplicates by URL **and** perceptual hash, and
 saves them numbered `0001.jpg`, `0002.jpg`, ... into a folder.
 
 Sources: Pinkbike Buy/Sell, Reddit cycling subs, eBay (used filter),
-BikeExchange (best-effort).
+BikeExchange (best-effort), BikeRegister (UK stolen bike registry — all
+owner-uploaded photos).
 
 ## Setup
 
