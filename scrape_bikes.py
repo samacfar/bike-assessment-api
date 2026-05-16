@@ -151,9 +151,45 @@ def download_image(url: str, min_width: int) -> tuple[bytes, Image.Image] | None
 
 class Source:
     name: str = ""
+    BLOCK_LIMIT = 2
+    FAIL_LIMIT = 4
+
+    def __init__(self) -> None:
+        self.fails = 0
+        self.blocks = 0
+        self.dropped = False
 
     def candidate_urls(self) -> Iterator[str]:
         raise NotImplementedError
+
+    def _fetch(self, url: str, *, headers: dict | None = None, timeout: int = 30):
+        if self.dropped:
+            return None
+        try:
+            resp = session.get(url, headers=headers, timeout=timeout)
+        except requests.RequestException as e:
+            self.fails += 1
+            log.warning("%s: request failed (%s) [%d/%d]",
+                        self.name, e, self.fails, self.FAIL_LIMIT)
+            if self.fails >= self.FAIL_LIMIT:
+                log.error("%s: too many failures, dropping source for this run", self.name)
+                self.dropped = True
+            return None
+        if resp.status_code in (401, 403, 429):
+            self.blocks += 1
+            log.warning("%s: HTTP %d on %s [%d/%d]",
+                        self.name, resp.status_code, url, self.blocks, self.BLOCK_LIMIT)
+            if self.blocks >= self.BLOCK_LIMIT:
+                log.error("%s: appears blocked (HTTP %d), dropping source for this run",
+                          self.name, resp.status_code)
+                self.dropped = True
+            return None
+        if not resp.ok:
+            log.debug("%s: HTTP %d on %s", self.name, resp.status_code, url)
+            return None
+        self.fails = 0
+        self.blocks = 0
+        return resp
 
 
 class Pinkbike(Source):
@@ -162,13 +198,14 @@ class Pinkbike(Source):
 
     def candidate_urls(self) -> Iterator[str]:
         for page in range(1, 200):
+            if self.dropped:
+                return
             list_url = f"{self.LIST_URL}?page={page}"
-            try:
-                resp = session.get(list_url, timeout=30)
-                resp.raise_for_status()
-            except requests.RequestException as e:
-                log.warning("pinkbike list page %d failed: %s", page, e)
-                time.sleep(REQUEST_DELAY * 3)
+            resp = self._fetch(list_url)
+            if resp is None:
+                if self.dropped:
+                    return
+                time.sleep(REQUEST_DELAY * 2)
                 continue
             soup = BeautifulSoup(resp.text, "html.parser")
             detail_urls: set[str] = set()
@@ -181,16 +218,15 @@ class Pinkbike(Source):
                 return
             log.info("pinkbike page %d: %d listings", page, len(detail_urls))
             for detail in detail_urls:
+                if self.dropped:
+                    return
                 yield from self._listing_images(detail)
                 time.sleep(REQUEST_DELAY)
             time.sleep(REQUEST_DELAY)
 
     def _listing_images(self, url: str) -> Iterator[str]:
-        try:
-            resp = session.get(url, timeout=30)
-            resp.raise_for_status()
-        except requests.RequestException as e:
-            log.debug("pinkbike listing %s failed: %s", url, e)
+        resp = self._fetch(url)
+        if resp is None:
             return
         urls: set[str] = set()
         soup = BeautifulSoup(resp.text, "html.parser")
@@ -233,16 +269,21 @@ class Reddit(Source):
     def _scan(self, sub: str, sort: str) -> Iterator[str]:
         after = None
         for _ in range(25):
+            if self.dropped:
+                return
             url = f"https://www.reddit.com/r/{sub}/{sort}.json?limit=100&t=all"
             if after:
                 url += f"&after={after}"
-            try:
-                resp = requests.get(url, headers=REDDIT_HEADERS, timeout=30)
-                resp.raise_for_status()
-                data = resp.json()
-            except (requests.RequestException, ValueError) as e:
-                log.warning("reddit r/%s/%s failed: %s", sub, sort, e)
+            resp = self._fetch(url, headers=REDDIT_HEADERS)
+            if resp is None:
+                if self.dropped:
+                    return
                 time.sleep(REQUEST_DELAY * 5)
+                return
+            try:
+                data = resp.json()
+            except ValueError as e:
+                log.warning("reddit r/%s/%s: bad JSON: %s", sub, sort, e)
                 return
             children = data.get("data", {}).get("children", [])
             if not children:
@@ -289,16 +330,19 @@ class Ebay(Source):
 
     def candidate_urls(self) -> Iterator[str]:
         for q in self.QUERIES:
+            if self.dropped:
+                return
             for page in range(1, 25):
+                if self.dropped:
+                    return
                 url = (
                     "https://www.ebay.com/sch/i.html?"
                     f"_nkw={q.replace(' ', '+')}&LH_ItemCondition=3000&_pgn={page}"
                 )
-                try:
-                    resp = session.get(url, timeout=30)
-                    resp.raise_for_status()
-                except requests.RequestException as e:
-                    log.warning("ebay '%s' p%d failed: %s", q, page, e)
+                resp = self._fetch(url)
+                if resp is None:
+                    if self.dropped:
+                        return
                     break
                 soup = BeautifulSoup(resp.text, "html.parser")
                 listing_urls: set[str] = set()
@@ -309,16 +353,15 @@ class Ebay(Source):
                     break
                 log.info("ebay '%s' p%d: %d listings", q, page, len(listing_urls))
                 for lurl in listing_urls:
+                    if self.dropped:
+                        return
                     yield from self._listing_images(lurl)
                     time.sleep(REQUEST_DELAY)
                 time.sleep(REQUEST_DELAY)
 
     def _listing_images(self, url: str) -> Iterator[str]:
-        try:
-            resp = session.get(url, timeout=30)
-            resp.raise_for_status()
-        except requests.RequestException as e:
-            log.debug("ebay listing failed %s: %s", url, e)
+        resp = self._fetch(url)
+        if resp is None:
             return
         seen: set[str] = set()
         for m in re.finditer(
@@ -343,15 +386,19 @@ class BikeExchange(Source):
 
     def candidate_urls(self) -> Iterator[str]:
         for base in self.BASES:
+            if self.dropped:
+                return
             for path in self.LISTING_PATHS:
+                if self.dropped:
+                    return
                 for page in range(1, 40):
+                    if self.dropped:
+                        return
                     url = f"{base}{path}?page={page}"
-                    try:
-                        resp = session.get(url, timeout=30)
-                    except requests.RequestException as e:
-                        log.debug("bikeexchange %s failed: %s", url, e)
-                        break
-                    if resp.status_code != 200:
+                    resp = self._fetch(url)
+                    if resp is None:
+                        if self.dropped:
+                            return
                         break
                     soup = BeautifulSoup(resp.text, "html.parser")
                     detail_urls: set[str] = set()
@@ -363,15 +410,15 @@ class BikeExchange(Source):
                         break
                     log.info("bikeexchange %s p%d: %d listings", path, page, len(detail_urls))
                     for d in detail_urls:
+                        if self.dropped:
+                            return
                         yield from self._listing_images(d)
                         time.sleep(REQUEST_DELAY)
                     time.sleep(REQUEST_DELAY)
 
     def _listing_images(self, url: str) -> Iterator[str]:
-        try:
-            resp = session.get(url, timeout=30)
-            resp.raise_for_status()
-        except requests.RequestException:
+        resp = self._fetch(url)
+        if resp is None:
             return
         soup = BeautifulSoup(resp.text, "html.parser")
         for og in soup.find_all("meta", property="og:image"):
@@ -493,6 +540,9 @@ def main() -> int:
     finally:
         state.save(state_path)
 
+    dropped = [name for name in chosen if SOURCES[name].dropped]
+    if dropped:
+        print(f"Sources dropped this run (blocked / too many failures): {', '.join(dropped)}")
     print(f"Done. Saved {kept_this_run} new images this run. Total in folder: {total}/{args.target}.")
     return 0
 
