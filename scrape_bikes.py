@@ -36,7 +36,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterator
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlencode
 
 import imagehash
 import requests
@@ -259,6 +259,8 @@ class Reddit(Source):
     SUBS = [
         "whichbike", "BikeMechanics", "bicycling", "MTB", "Velo",
         "gravelcycling", "cycling", "BikePorn", "xbiking", "BikeWrench",
+        "cycling_aus", "bicycling_aus", "MTB_Australia",
+        "CyclingNZ", "newzealand_cycling",
     ]
 
     def candidate_urls(self) -> Iterator[str]:
@@ -496,7 +498,165 @@ class BikeRegister(Source):
                 yield full
 
 
-SOURCES = {s.name: s for s in [Pinkbike(), Reddit(), Ebay(), BikeExchange(), BikeRegister()]}
+class BikeIndex(Source):
+    name = "bikeindex"
+    API = "https://bikeindex.org/api/v3/bikes/search"
+    QUERIES = [
+        {"location": "Auckland, New Zealand", "distance": 2000},
+        {"location": "Wellington, New Zealand", "distance": 2000},
+        {"location": "Christchurch, New Zealand", "distance": 1500},
+        {"location": "Sydney, Australia", "distance": 2000},
+        {"location": "Melbourne, Australia", "distance": 2000},
+        {"location": "Brisbane, Australia", "distance": 1500},
+        {"location": "Perth, Australia", "distance": 1500},
+        {},  # global fallback for volume
+    ]
+
+    def candidate_urls(self) -> Iterator[str]:
+        for q in self.QUERIES:
+            if self.dropped:
+                return
+            for page in range(1, 100):
+                if self.dropped:
+                    return
+                params = {"per_page": 100, "page": page, "stolenness": "all", **q}
+                url = f"{self.API}?{urlencode(params)}"
+                resp = self._fetch(url, headers={"Accept": "application/json"})
+                if resp is None:
+                    if self.dropped:
+                        return
+                    break
+                try:
+                    data = resp.json()
+                except ValueError as e:
+                    log.warning("bikeindex bad JSON: %s", e)
+                    break
+                bikes = data.get("bikes", [])
+                if not bikes:
+                    break
+                tag = q.get("location", "global")
+                log.info("bikeindex %s p%d: %d bikes", tag, page, len(bikes))
+                for b in bikes:
+                    for u in self._bike_image_urls(b):
+                        yield u
+                time.sleep(REQUEST_DELAY)
+
+    @staticmethod
+    def _bike_image_urls(b: dict) -> list[str]:
+        urls: list[str] = []
+        if b.get("large_img"):
+            urls.append(b["large_img"])
+        for pi in (b.get("public_images") or []):
+            if isinstance(pi, dict):
+                u = pi.get("image_url") or pi.get("full") or pi.get("url")
+                if u:
+                    urls.append(u)
+        if not urls and b.get("thumb"):
+            urls.append(b["thumb"])
+        return urls
+
+
+class LFGSS(Source):
+    name = "lfgss"
+    LIST_URL = "https://www.lfgss.com/microcosms/548/"
+
+    def candidate_urls(self) -> Iterator[str]:
+        for offset in range(0, 5000, 25):
+            if self.dropped:
+                return
+            url = f"{self.LIST_URL}?offset={offset}"
+            resp = self._fetch(url)
+            if resp is None:
+                if self.dropped:
+                    return
+                break
+            soup = BeautifulSoup(resp.text, "html.parser")
+            thread_urls: set[str] = set()
+            for a in soup.find_all("a", href=True):
+                if re.search(r"/conversations/\d+", a["href"]):
+                    thread_urls.add(urljoin(url, a["href"].split("?")[0].split("#")[0]))
+            if not thread_urls:
+                log.info("lfgss: no more threads at offset %d", offset)
+                return
+            log.info("lfgss offset %d: %d threads", offset, len(thread_urls))
+            for t in thread_urls:
+                if self.dropped:
+                    return
+                yield from self._thread_images(t)
+                time.sleep(REQUEST_DELAY)
+            time.sleep(REQUEST_DELAY)
+
+    def _thread_images(self, url: str) -> Iterator[str]:
+        resp = self._fetch(url)
+        if resp is None:
+            return
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for img in soup.find_all("img"):
+            src = img.get("src") or img.get("data-src") or ""
+            if not src:
+                continue
+            full = src if src.startswith("http") else urljoin(url, src)
+            if any(skip in full.lower() for skip in ("avatar", "emoji", "/icons/", "/static/")):
+                continue
+            if "lfgss.com/api/v1/files/" in full or \
+               re.search(r"\.(jpe?g|png|webp)(\?|$)", full, re.I):
+                yield full
+
+
+class Retrobike(Source):
+    name = "retrobike"
+    LIST_URL = "https://www.retrobike.co.uk/forums/for-sale.2/"
+
+    def candidate_urls(self) -> Iterator[str]:
+        for page in range(1, 200):
+            if self.dropped:
+                return
+            url = self.LIST_URL if page == 1 else f"{self.LIST_URL}page-{page}"
+            resp = self._fetch(url)
+            if resp is None:
+                if self.dropped:
+                    return
+                break
+            soup = BeautifulSoup(resp.text, "html.parser")
+            thread_urls: set[str] = set()
+            for a in soup.find_all("a", href=True):
+                m = re.search(r"/threads/[^/]+\.\d+/?", a["href"])
+                if m:
+                    thread_urls.add(urljoin(url, m.group(0)))
+            if not thread_urls:
+                log.info("retrobike: no threads at page %d", page)
+                return
+            log.info("retrobike p%d: %d threads", page, len(thread_urls))
+            for t in thread_urls:
+                if self.dropped:
+                    return
+                yield from self._thread_images(t)
+                time.sleep(REQUEST_DELAY)
+            time.sleep(REQUEST_DELAY)
+
+    def _thread_images(self, url: str) -> Iterator[str]:
+        resp = self._fetch(url)
+        if resp is None:
+            return
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for img in soup.find_all("img"):
+            src = (img.get("src") or img.get("data-src") or
+                   img.get("data-url") or img.get("data-src-original") or "")
+            if not src:
+                continue
+            full = src if src.startswith("http") else urljoin(url, src)
+            if any(skip in full.lower() for skip in
+                   ("avatar", "smilies", "/styles/", "/data/icons/", "logo", "ads/")):
+                continue
+            if "retrobike.co.uk" in full or \
+               re.search(r"\.(jpe?g|png|webp)(\?|$)", full, re.I):
+                yield full
+
+
+SOURCES = {s.name: s for s in [
+    Pinkbike(), Reddit(), Ebay(), BikeExchange(), BikeRegister(),
+    BikeIndex(), LFGSS(), Retrobike(),
+]}
 
 
 # ----- Main -----

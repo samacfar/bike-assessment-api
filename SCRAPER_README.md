@@ -4,9 +4,16 @@ Pulls secondhand bike photos from cycling classifieds and forums, filters to
 images **≥ 1500 px wide**, deduplicates by URL **and** perceptual hash, and
 saves them numbered `0001.jpg`, `0002.jpg`, ... into a folder.
 
-Sources: Pinkbike Buy/Sell, Reddit cycling subs, eBay (used filter),
-BikeExchange (best-effort), BikeRegister (UK stolen bike registry — all
-owner-uploaded photos).
+Sources:
+- **Bike Index** — public API; biased toward NZ/AU via location filters, with a
+  global fallback. All owner-uploaded photos.
+- **Reddit** — cycling subs, including some AU/NZ-specific ones.
+- **Pinkbike Buy/Sell** — often Cloudflare-blocks scrapers; auto-drops if so.
+- **eBay** — used filter (LH_ItemCondition=3000).
+- **BikeExchange** — AU/NZ marketplace; best-effort, varies by region.
+- **BikeRegister** — UK stolen-bike registry; all owner-uploaded.
+- **LFGSS** — London Fixed-Gear forum "For Sale" microcosm. UK-only.
+- **Retrobike** — UK vintage MTB forum "For Sale". UK-only.
 
 ## Setup
 
